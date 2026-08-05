@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "minuteflow"
+version = "0.1.0"
+description = "Evidence-grounded meeting-note action planner built with the OpenAI Agents SDK."
+readme = "README.md"
+requires-python = ">=3.11,<3.15"
+authors = [{ name = "MinuteFlow Contributors" }]
+dependencies = [
+  "openai-agents>=0.19.4,<0.20",
+  "pydantic>=2.12.2,<3",
+  "python-dotenv>=1.0,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "pytest-asyncio>=0.25,<2",
+  "ruff>=0.11,<1",
+]
+
+[project.scripts]
+minuteflow = "minuteflow.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/minuteflow"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]

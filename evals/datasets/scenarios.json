@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "clear-decision-actions",
+      "class": "clear",
+      "expected_decisions": 1,
+      "expected_actions": 2,
+      "must_not": ["invent Leo's due date", "promote a future discussion"]
+    },
+    {
+      "id": "ambiguous-suggestions",
+      "class": "ambiguous",
+      "expected_decisions": 0,
+      "expected_actions": 0,
+      "must_not": ["assign Alex as owner", "promote maybe to a commitment"]
+    },
+    {
+      "id": "normal-empty-result",
+      "class": "empty-result",
+      "expected_decisions": 0,
+      "expected_actions": 0,
+      "must_not": ["create filler actions"]
+    }
+  ]
+}
