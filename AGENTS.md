@@ -9,7 +9,7 @@ MinuteFlow is an evidence-grounded meeting-note action planner. Preserve the det
 3. `docs/ARCHITECTURE.md`
 4. `agents/AGENTS.md`
 5. `workflows/WORKFLOW.md`
-6. `evals/EVALUATION.md`
+6. `evals/TEST_SCENARIOS.md`
 
 ## Architecture invariants
 
@@ -39,4 +39,4 @@ Run before declaring implementation work complete:
 .venv/bin/python -m pip check
 ```
 
-Update `docs/STATUS.md` and `evals/EVALUATION.md` when verified behavior changes. Keep live model evidence separate from scripted-backend evidence.
+Update `docs/STATUS.md` when verified behavior changes. Keep live model evidence separate from scripted-backend evidence.

@@ -108,7 +108,7 @@ All automated tests use a scripted Agent backend and therefore need neither an A
 - Framework decision: `framework/DECISION.md`
 - Agent contracts: `agents/AGENTS.md`
 - Workflow: `workflows/WORKFLOW.md`
-- Evaluation: `evals/EVALUATION.md`
+- Evaluation: `evals/TEST_SCENARIOS.md`
 
 ---
 
@@ -216,4 +216,4 @@ export DEEPSEEK_API_KEY=sk-...
 - 框架选型：`framework/DECISION.md`
 - Agent 契约：`agents/AGENTS.md`
 - 工作流：`workflows/WORKFLOW.md`
-- 评测：`evals/EVALUATION.md`
+- 评测：`evals/TEST_SCENARIOS.md`

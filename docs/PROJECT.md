@@ -1,12 +1,11 @@
 ---
 managed_by: agent-builder
 update_mode: auto
-version: 5
-last_updated: 2026-08-05
+version: 6
+last_updated: 2026-08-29
 project_id: minuteflow
-status: implementation-offline-tested
+status: implementation-live-tested
 delivery_scope: runnable-python-cli
-implementation_location: minuteflow
 export_status: implementation-complete
 ---
 
@@ -16,7 +15,7 @@ export_status: implementation-complete
 
 MinuteFlow 接收一份 Markdown 或纯文本会议纪要，提取已经形成的决策和明确承诺的行动项，为每条结果保留原文证据，并把缺少负责人、日期或结论的信息标记为待确认。
 
-这个项目最初用于验证 Agent Builder，现在已经在独立目录中实现为可安装的 Python CLI。它不需要外部 SaaS、数据库、长期记忆或图形界面；只有用户主动运行 CLI 时才会把纪要发送给所配置的模型。
+MinuteFlow 是一个可安装的 Python CLI。它不需要外部 SaaS、数据库、长期记忆或图形界面；只有用户主动运行 CLI 时才会把纪要发送给所配置的模型。
 
 ## 2. 要解决的问题
 
@@ -51,13 +50,11 @@ MinuteFlow 接收一份 Markdown 或纯文本会议纪要，提取已经形成�
 - 不自动发送任务或修改第三方系统。
 - 不做跨会议长期记忆。
 - 不生成复杂前端或设计稿。
-- 不在 Agent Builder 工作区内实现业务源码。
 
 ## 6. 实现交付边界
 
 - 当前交付：可安装 Python 包、OpenAI Agents SDK 双 Agent 编排、CLI、JSON/Markdown 输出、离线测试、示例和完整设计文档。
 - 当前不交付：Web UI、HTTP API、托管部署、第三方任务系统写入或长期记忆。
-- 实现位置：`minuteflow`，与 Agent Builder 蓝图目录分离。
 - 数据边界：安装和测试不会发送纪要；实时 CLI 运行需要用户配置 `OPENAI_API_KEY`，Tracing 默认关闭。
 
 ## 7. 核心规则
@@ -81,21 +78,6 @@ MinuteFlow 接收一份 Markdown 或纯文本会议纪要，提取已经形成�
 | MF-06 | 架构保持最小复杂度 | Must | 模块审查 | 两个模型 Agent、三个确定性组件，无数据库或外部 Connector |
 | FW-01 | 框架选择有需求证据 | Must | 检查 `framework/DECISION.md` | 比较主要候选，记录采用、排除和重新选型条件 |
 | DIR-01 | 实现目录职责清晰 | Must | 检查项目树 | 根目录只有标准入口与配置；源码、测试、评测和设计资料分区 |
-| SEP-01 | Builder 与业务代码分离 | Must | 比较两个目录 | 业务源码只存在于外部项目，不回流 Agent Builder |
 | HND-01 | 独立实现可运行 | Must | 安装包并运行 CLI/测试 | 隔离环境可安装，CLI 可启动，离线测试全部通过 |
 | IMPL-01 | Agent SDK 契约可执行 | Must | 运行 Agent 定义与输出契约测试 | 两个 Agent 都有 Pydantic output type 和输出 Guardrail |
 | PRIV-01 | 测试与 Tracing 默认安全 | Must | 清除 API Key 后运行测试与 CLI 检查 | 测试不调用 API；Tracing 默认关闭；缺少 Key 时安全失败 |
-
-## 9. 信息充分性状态
-
-| 事项 | 分类 | 当前状态 | 处理方式 |
-|---|---|---|---|
-| 项目目标与测试范围 | 已知 | 足够 | 由 Builder 选择的小型测试项目 |
-| 输入输出边界 | 已知 | 足够 | 单文件输入、结构化结果和证据 |
-| Agent 数量与职责 | 可发现 | 已解决 | 按最小职责设计四个逻辑 Agent |
-| 实现语言与 Agent Profile | 可发现 | 蓝图已解决 | 选择 OpenAI Agents SDK for Python；非 Python 实施时重新选型 |
-| 模型或 Provider | 可逆非阻塞 | 已解决 | OpenAI Provider；默认 `gpt-5.6-luna`，可通过环境变量替换 |
-| CLI、API 或 UI | 可逆非阻塞 | 已解决 | 首版实现 CLI；API/UI 保持非目标 |
-| 独立实现目录 | 已知 | 已解决 | 用户明确要求在 `minuteflow` 实现 |
-
-
