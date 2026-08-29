@@ -66,6 +66,23 @@ Useful options:
 
 The default model is `gpt-5.6-luna`, selected for efficient high-volume work. Override it when your account, cost target, or evaluation results require another model.
 
+### Using an OpenAI-compatible endpoint (e.g. DeepSeek)
+
+DeepSeek's API is OpenAI-compatible but does not implement the SDK's
+`json_schema` structured outputs, so MinuteFlow switches to JSON mode whenever
+`MINUTEFLOW_BASE_URL` is set. JSON mode asks the model for a JSON object and
+parses it through the same Pydantic contracts and deterministic checks.
+
+```bash
+export MINUTEFLOW_BASE_URL=https://api.deepseek.com
+export MINUTEFLOW_MODEL=deepseek-v4-pro
+export DEEPSEEK_API_KEY=sk-...
+.venv/bin/minuteflow examples/meeting.md --format markdown
+```
+
+Prefer putting these values in `.env` (see `.env.example`) rather than exporting
+them. Leaving `MINUTEFLOW_BASE_URL` empty keeps the native OpenAI structured-output path.
+
 ## Test
 
 ```bash

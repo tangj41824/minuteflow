@@ -29,12 +29,21 @@ def _unique(values: Iterable[str]) -> list[str]:
     return list(dict.fromkeys(value.strip() for value in values if value and value.strip()))
 
 
+_QUESTION_ARTIFACT_RE = re.compile(r"\.\s*\?$")
+
+
+def _unique_questions(values: Iterable[str]) -> list[str]:
+    cleaned = (_QUESTION_ARTIFACT_RE.sub("?", value.strip()) for value in values)
+    return list(dict.fromkeys(question for question in cleaned if question))
+
+
 def _references(document: SourceDocument, spans: list[EvidenceSpan]) -> list[EvidenceReference]:
+    """Build evidence references with verbatim source text; line numbers live in ``line_range``."""
     by_number = {line.number: line.text for line in document.lines}
     references: list[EvidenceReference] = []
     for span in spans:
         text = "\n".join(
-            f"L{number}: {by_number[number]}"
+            by_number[number]
             for number in range(span.start_line, span.end_line + 1)
             if number in by_number
         )
@@ -60,9 +69,10 @@ def _evidence_text(document: SourceDocument, spans: list[EvidenceSpan]) -> str:
 
 
 def _question_for(action: ActionCandidate, field: str) -> str:
+    task = action.task.rstrip(" .")
     if field == "owner":
-        return f"Who owns this action: {action.task}?"
-    return f"When is this action due: {action.task}?"
+        return f"Who owns this action: {task}?"
+    return f"When is this action due: {task}?"
 
 
 def _is_pass(review: CandidateReview | None) -> bool:
@@ -140,7 +150,8 @@ def deliver_report(
             missing.add("owner")
         if due_date is None:
             missing.add("due_date")
-        questions.extend(review.clarification_questions if review else [])
+        # In-report candidates get exactly one deterministic question per missing field;
+        # model phrasing is dropped here to avoid near-duplicate questions.
         questions.extend(_question_for(candidate, field) for field in sorted(missing))
 
         actions.append(
@@ -161,7 +172,7 @@ def deliver_report(
         summary=extraction.summary,
         decisions=decisions,
         actions=actions,
-        clarification_questions=_unique(questions),
+        clarification_questions=_unique_questions(questions),
         warnings=_unique(warnings),
         retry_count=retry_count,
         source_line_count=len(document.lines),

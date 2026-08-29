@@ -77,8 +77,82 @@ Pricing will be discussed next week."""
     assert report.actions[1].due_date is None
     assert report.actions[1].status == "needs_clarification"
     assert report.decisions[0].evidence[0].line_range == "L2"
-    assert any("Leo" in question for question in report.clarification_questions)
+    assert report.decisions[0].evidence[0].text == (
+        "The team decided to move the beta release to August 19."
+    )
+    assert report.clarification_questions == ["When is this action due: Check payment logs?"]
     assert backend.extract_calls == backend.verify_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_duplicate_model_questions_collapse_into_one_deterministic_question() -> None:
+    source = "Pat will ship the release notes by Friday."
+    extraction = ExtractionOutput(
+        summary="One action with an owner but no due date.",
+        actions=[
+            ActionCandidate(
+                id="A1",
+                task="Ship the release notes.",
+                owner="Pat",
+                due_date=None,
+                commitment="explicit",
+                evidence=[EvidenceSpan(start_line=1, end_line=1)],
+            )
+        ],
+    )
+    verification = VerificationOutput(
+        reviews=[
+            CandidateReview(
+                candidate_id="A1",
+                verdict="pass",
+                reason="Explicit task without a due date.",
+                missing_fields=["due_date"],
+                clarification_questions=[
+                    "When is the release-notes task due?",
+                    "When is the release-notes task due?",
+                ],
+            )
+        ],
+    )
+    backend = ScriptedBackend(extractions=[extraction], verifications=[verification])
+
+    report = await MinuteFlowPipeline(backend).run(source)
+
+    assert report.clarification_questions == ["When is this action due: Ship the release notes?"]
+    assert report.actions[0].evidence[0].text == "Pat will ship the release notes by Friday."
+
+
+@pytest.mark.asyncio
+async def test_question_artifact_periods_are_normalized() -> None:
+    source = "Maybe we should inspect the logs."
+    extraction = ExtractionOutput(
+        summary="A suggestion.",
+        actions=[
+            ActionCandidate(
+                id="A1",
+                task="Inspect the logs.",
+                owner=None,
+                due_date=None,
+                commitment="suggested",
+                evidence=[EvidenceSpan(start_line=1, end_line=1)],
+            )
+        ],
+    )
+    verification = VerificationOutput(
+        reviews=[
+            CandidateReview(
+                candidate_id="A1",
+                verdict="reject",
+                reason="Not an explicit commitment.",
+                clarification_questions=["Should this become an action: Inspect the logs.?"],
+            )
+        ],
+    )
+    backend = ScriptedBackend(extractions=[extraction], verifications=[verification])
+
+    report = await MinuteFlowPipeline(backend).run(source)
+
+    assert report.clarification_questions == ["Should this become an action: Inspect the logs?"]
 
 
 @pytest.mark.asyncio

@@ -31,6 +31,8 @@ class Settings:
     reasoning_effort: ReasoningEffort = DEFAULT_REASONING_EFFORT
     enable_tracing: bool = False
     max_input_chars: int = DEFAULT_MAX_INPUT_CHARS
+    base_url: str | None = None
+    api_key: str | None = None
 
     @classmethod
     def from_env(
@@ -65,9 +67,14 @@ class Settings:
         if not model.strip():
             raise ConfigurationError("The configured model ID cannot be empty.")
 
+        base_url = os.getenv("MINUTEFLOW_BASE_URL", "").strip() or None
+        api_key = os.getenv("MINUTEFLOW_API_KEY") or os.getenv("DEEPSEEK_API_KEY") or None
+
         return cls(
             model=model.strip(),
             reasoning_effort=cast(ReasoningEffort, raw_effort),
             enable_tracing=enable_tracing,
             max_input_chars=max_input_chars,
+            base_url=base_url,
+            api_key=api_key,
         )
