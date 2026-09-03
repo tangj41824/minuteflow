@@ -85,6 +85,25 @@ export DEEPSEEK_API_KEY=sk-...
 Prefer putting these values in `.env` (see `.env.example`) rather than exporting
 them. Leaving `MINUTEFLOW_BASE_URL` empty keeps the native OpenAI structured-output path.
 
+### Web UI
+
+MinuteFlow ships a local web app: paste or upload notes in the browser, watch the
+pipeline progress live, and browse past reports.
+
+```bash
+.venv/bin/python -m pip install -e ".[web]"
+cd frontend && npm install && npm run build
+.venv/bin/minuteflow web --open
+```
+
+The server binds `127.0.0.1:8000` by default and serves the built UI plus a JSON API.
+Reports and source notes are kept locally under `~/.minuteflow/history/` (override with
+`MINUTEFLOW_HISTORY_DIR`); each run can be deleted from the UI, and the history keeps at
+most 50 entries. Notes are sent to the configured model only when you start a run.
+
+For frontend development, run `npm run dev` in `frontend/` (the Vite dev server proxies
+`/api` to `127.0.0.1:8000`) alongside `minuteflow web`.
+
 ## Test
 
 ```bash
@@ -192,6 +211,20 @@ export DEEPSEEK_API_KEY=sk-...
 ```
 
 建议把这些值放在 `.env`（见 `.env.example`）而不是 export。`MINUTEFLOW_BASE_URL` 留空则保持原生 OpenAI 结构化输出路径。
+
+### Web UI
+
+MinuteFlow 自带一个本地 Web 应用：在浏览器中粘贴或上传纪要、实时查看管线进度，并回看历史报告。
+
+```bash
+.venv/bin/python -m pip install -e ".[web]"
+cd frontend && npm install && npm run build
+.venv/bin/minuteflow web --open
+```
+
+服务默认绑定 `127.0.0.1:8000`，托管构建好的界面并提供 JSON API。报告与原始纪要保存在本地 `~/.minuteflow/history/`（可用 `MINUTEFLOW_HISTORY_DIR` 覆盖），可在界面中逐条删除，最多保留 50 条。只有当你主动开始运行时，笔记才会发送给所配置的模型。
+
+前端开发时，在 `frontend/` 运行 `npm run dev`（Vite 开发服务器会把 `/api` 代理到 `127.0.0.1:8000`），同时运行 `minuteflow web`。
 
 ## 测试
 

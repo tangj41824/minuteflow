@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from minuteflow import __version__
 from minuteflow.agents.backend import OpenAIAgentsBackend
 from minuteflow.config import Settings
-from minuteflow.exceptions import MinuteFlowError
+from minuteflow.exceptions import ConfigurationError, MinuteFlowError
 from minuteflow.orchestration import MinuteFlowPipeline
 from minuteflow.renderers import render_json, render_markdown
 
@@ -65,8 +65,51 @@ async def _run(args: argparse.Namespace) -> tuple[str, int]:
     return rendered, 2 if report.errors else 0
 
 
+def build_web_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="minuteflow web",
+        description="Run the local MinuteFlow web app (binds localhost by default).",
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="Bind address (default 127.0.0.1).")
+    parser.add_argument("--port", type=int, default=8000, help="Port (default 8000).")
+    parser.add_argument("--open", action="store_true", help="Open the UI in a browser.")
+    parser.add_argument("--model", help="Override MINUTEFLOW_MODEL for this server.")
+    parser.add_argument(
+        "--enable-tracing",
+        action="store_true",
+        help="Opt in to OpenAI Agents SDK trace export; traces may contain note content.",
+    )
+    parser.add_argument("--history-dir", type=Path, help="Override MINUTEFLOW_HISTORY_DIR.")
+    return parser
+
+
+def _main_web(raw_args: list[str]) -> int:
+    args = build_web_parser().parse_args(raw_args)
+    try:
+        settings = Settings.from_env(
+            model_override=args.model,
+            enable_tracing_override=True if args.enable_tracing else None,
+        )
+    except ConfigurationError as exc:
+        print(f"minuteflow: {exc}", file=sys.stderr)
+        return 2
+    # Lazy import: the web extras are optional for the plain CLI.
+    from minuteflow.web.server import serve
+
+    return serve(
+        settings,
+        host=args.host,
+        port=args.port,
+        open_browser=args.open,
+        history_dir=args.history_dir,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
+    raw = sys.argv[1:] if argv is None else argv
+    if raw and raw[0] == "web":
+        return _main_web(raw[1:])
     args = build_parser().parse_args(argv)
     try:
         rendered, exit_code = asyncio.run(_run(args))

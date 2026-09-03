@@ -19,6 +19,7 @@ MinuteFlow is an evidence-grounded meeting-note action planner. Preserve the det
 - Missing owner or due date stays null and produces a clarification question.
 - Suggestions and discussions never become confirmed outcomes.
 - Extraction may retry at most once after Verification feedback.
+- The web layer (`src/minuteflow/web/`) is a second caller of the same pipeline; it never changes pipeline topology. Local run history uses plain JSON files — not a database.
 - Do not add Memory, RAG, Handoffs, external Connectors, or a database without a new framework decision.
 
 ## Privacy and external actions
@@ -26,6 +27,7 @@ MinuteFlow is an evidence-grounded meeting-note action planner. Preserve the det
 - Never commit `.env`, API keys, meeting notes, or generated private reports.
 - Do not run live API tests unless the user explicitly authorizes the data, model cost, and call.
 - OpenAI Agents SDK tracing remains disabled by default because traces can contain note content.
+- The web server binds 127.0.0.1 by default; history stores notes and reports locally under `~/.minuteflow/history/`. Never commit `frontend/dist`, `node_modules`, or any history content.
 - Automated tests must remain fully offline.
 
 ## Verification

@@ -1,8 +1,8 @@
 ---
 managed_by: agent-builder
 update_mode: auto
-version: 6
-last_updated: 2026-08-29
+version: 7
+last_updated: 2026-09-02
 project_id: minuteflow
 status: implementation-live-tested
 delivery_scope: runnable-python-cli
@@ -15,7 +15,7 @@ export_status: implementation-complete
 
 MinuteFlow 接收一份 Markdown 或纯文本会议纪要，提取已经形成的决策和明确承诺的行动项，为每条结果保留原文证据，并把缺少负责人、日期或结论的信息标记为待确认。
 
-MinuteFlow 是一个可安装的 Python CLI。它不需要外部 SaaS、数据库、长期记忆或图形界面；只有用户主动运行 CLI 时才会把纪要发送给所配置的模型。
+MinuteFlow 是一个可安装的 Python CLI，同时提供本地 Web 界面。它不需要外部 SaaS、数据库或长期记忆；只有用户主动运行 CLI 或 Web 界面时，纪要才会发送给所配置的模型。
 
 ## 2. 要解决的问题
 
@@ -25,7 +25,7 @@ MinuteFlow 是一个可安装的 Python CLI。它不需要外部 SaaS、数据�
 
 ### 输入
 
-- 一份 UTF-8 Markdown 或纯文本会议纪要。
+- 一份 UTF-8 Markdown 或纯文本会议纪要，通过 CLI（文件或标准输入）或本地 Web 界面（粘贴/上传）提供。
 - 可选会议日期，用于解释“下周”等相对时间；没有日期时不得猜测绝对日期。
 
 ### 输出
@@ -43,19 +43,20 @@ MinuteFlow 是一个可安装的 Python CLI。它不需要外部 SaaS、数据�
 - 区分已决定、明确行动、建议、讨论和未知信息。
 - 每个候选结果经过独立验证后才能进入最终输出。
 - 最多执行一次基于验证反馈的重新提取，避免无限循环。
+- 通过 `minuteflow web` 提供本地 Web 界面：实时管线进度、报告展示与本地历史。
 
 ## 5. 非目标
 
 - 不读取日历、邮件、录音或视频。
 - 不自动发送任务或修改第三方系统。
 - 不做跨会议长期记忆。
-- 不生成复杂前端或设计稿。
+- 不提供托管部署、多用户认证或云端存储。
 
 ## 6. 实现交付边界
 
-- 当前交付：可安装 Python 包、OpenAI Agents SDK 双 Agent 编排、CLI、JSON/Markdown 输出、离线测试、示例和完整设计文档。
-- 当前不交付：Web UI、HTTP API、托管部署、第三方任务系统写入或长期记忆。
-- 数据边界：安装和测试不会发送纪要；实时 CLI 运行需要用户配置 `OPENAI_API_KEY`，Tracing 默认关闭。
+- 当前交付：可安装 Python 包、OpenAI Agents SDK 双 Agent 编排、CLI 与本地 Web 界面、JSON/Markdown 输出、离线测试、示例和完整设计文档。
+- 当前不交付：托管部署、多用户服务、第三方任务系统写入或长期记忆。
+- 数据边界：安装和测试不会发送纪要；只有用户主动运行 CLI 或 Web 界面时才发送，Tracing 默认关闭；Web 运行历史保存在本机。
 
 ## 7. 核心规则
 
@@ -65,6 +66,7 @@ MinuteFlow 是一个可安装的 Python CLI。它不需要外部 SaaS、数据�
 4. 没有明确截止日期时，`due_date` 必须为空；不得根据常识推断。
 5. 验证失败的记录不能进入最终结果，除非一次重试后获得直接证据。
 6. 正常的空结果是允许的；不得为了显得有用而虚构行动项。
+7. Web 界面默认只绑定本机（127.0.0.1），运行历史保存在本机。
 
 ## 8. 验收标准
 
@@ -81,3 +83,4 @@ MinuteFlow 是一个可安装的 Python CLI。它不需要外部 SaaS、数据�
 | HND-01 | 独立实现可运行 | Must | 安装包并运行 CLI/测试 | 隔离环境可安装，CLI 可启动，离线测试全部通过 |
 | IMPL-01 | Agent SDK 契约可执行 | Must | 运行 Agent 定义与输出契约测试 | 两个 Agent 都有 Pydantic output type 和输出 Guardrail |
 | PRIV-01 | 测试与 Tracing 默认安全 | Must | 清除 API Key 后运行测试与 CLI 检查 | 测试不调用 API；Tracing 默认关闭；缺少 Key 时安全失败 |
+| WEB-01 | 本地 Web 界面可用 | Should | 运行 `minuteflow web` 与离线 Web 测试 | 浏览器可提交纪要、查看实时进度与历史；默认仅绑定本机 |

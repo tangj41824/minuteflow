@@ -1,8 +1,8 @@
 ---
 managed_by: agent-builder
 update_mode: auto
-version: 3
-last_updated: 2026-08-05
+version: 4
+last_updated: 2026-09-02
 project_id: minuteflow
 ---
 
@@ -21,7 +21,7 @@ Input
       └─ fail → Extraction Agent（最多一次）→ Verification Agent
 ```
 
-四个逻辑职责不等于四个独立进程或四次模型调用。Profile 明确只让需要语义判断的 Extraction 和 Verification 调用 Agent runtime。
+四个逻辑职责不等于四个独立进程或四次模型调用。Profile 明确只让需要语义判断的 Extraction 和 Verification 调用 Agent runtime。CLI 与本地 Web 界面（`minuteflow web`）是两个等价调用方，共享同一条管线。
 
 ## 2. 模块与职责
 
@@ -101,7 +101,19 @@ Input
 | Controller | `src/minuteflow/orchestration.py` |
 | Delivery | `src/minuteflow/steps/delivery.py` |
 | CLI 与渲染 | `src/minuteflow/cli.py`、`src/minuteflow/renderers.py` |
+| 管线进度事件 | `src/minuteflow/schemas.py`（`PipelineEvent`）、`src/minuteflow/orchestration.py`（`on_event`） |
+| Web 后端 | `src/minuteflow/web/{app,models,history,state,server}.py` |
+| Web 前端 | `frontend/`（React + Vite） |
+| Web 测试 | `tests/web/`、`tests/unit/test_events.py` |
 
-## 8. 实现分离边界
+## 8. Web 层（`minuteflow web`）
+
+- FastAPI 工厂（`src/minuteflow/web/app.py`）在 lifespan 中构建**唯一的** backend/pipeline 实例（SDK 构造函数会修改进程级全局状态，禁止按请求构建）；并发上限为 2，超出返回 429。
+- 进度事件：`MinuteFlowPipeline.run(on_event=...)` 是可选的观察者回调，把事件推入每个运行独立的 `asyncio.Queue`，再以 SSE 流出（`/api/runs/{id}/events`，支持 `?after=N` 续传）。终端事件在历史落盘之后才发布——客户端看到 `delivered` 时报告必然可读。`on_event` 不改变管线拓扑。
+- 运行历史：`~/.minuteflow/history/` 下的 `index.json` + `{run_id}.json`（含原始笔记，供证据高亮），上限 50 条，原子写入；这是本地 JSON 文件，不是数据库。
+- 前端：React + Vite（`frontend/`），构建产物由 FastAPI 托管；开发模式使用 Vite dev server 把 `/api` 代理到 `127.0.0.1:8000`。
+- 隐私：默认只绑定 127.0.0.1；只有显式启动运行时才调用模型；Tracing 默认关闭；历史仅存本机，可逐条删除。
+
+## 9. 实现分离边界
 
 业务代码已经在独立 MinuteFlow 项目中实现，Agent Builder 内仍只保留蓝图和实施结果摘要。当前实现使用 Python 3.11+、OpenAI Agents SDK 0.19.x、可配置模型和 CLI 入口。

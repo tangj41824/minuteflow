@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -122,6 +122,16 @@ class ActionRecord(StrictModel):
     due_date: str | None
     status: Literal["confirmed", "needs_clarification"]
     evidence: list[EvidenceReference]
+
+
+PipelineStage = Literal["started", "extracting", "verifying", "retrying", "delivered", "failed"]
+
+
+class PipelineEvent(StrictModel):
+    stage: PipelineStage
+    timestamp: datetime
+    retry_count: int = 0
+    message: str | None = None
 
 
 class MeetingActionReport(StrictModel):
